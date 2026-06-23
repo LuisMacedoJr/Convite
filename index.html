@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>You Are Invited</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500&family=Playfair+Display:ital,wght=0,400;0,600;1,400&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.5/gsap.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.9.3/dist/confetti.browser.min.js"></script>
+
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #030712; 
+            /* Fixes the mobile browser dynamic address bar sizing issue (dvh = dynamic viewport height) */
+            min-height: 100dvh; 
+            overflow: hidden;
+            -webkit-tap-highlight-color: transparent; /* Removes the ugly blue flash on mobile clicks */
+        }
+        .font-serif {
+            font-family: 'Playfair Display', serif;
+        }
+        .magic-glow {
+            box-shadow: 0 0 25px rgba(212, 175, 55, 0.25);
+        }
+    </style>
+</head>
+<body class="relative w-full text-gray-100 flex items-center justify-center select-none antialiased overscroll-none">
+
+    <div class="absolute inset-0 z-0 overflow-hidden pointer-events-none">
+        <div id="bg-glow" class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[280px] sm:w-[500px] h-[280px] sm:h-[500px] bg-emerald-950/30 rounded-full blur-[80px] sm:blur-[120px] transition-all duration-1000"></div>
+    </div>
+
+    <main class="relative z-10 w-full max-w-sm sm:max-w-md px-5 text-center flex flex-col items-center justify-center min-h-[100dvh]">
+        
+        <section id="section-intro" class="w-full flex flex-col items-center justify-center gap-10">
+            <div class="overflow-hidden py-2 w-full">
+                <h1 id="intro-text" class="font-serif text-2xl sm:text-4xl text-emerald-100/90 leading-relaxed opacity-0 translate-y-8">
+                    Ei <span id="guest-name" class="italic text-amber-200">guria</span>,<br>
+                    tem uma coisinha te esperando...
+                </h1>
+            </div>
+            <button id="btn-unveil" class="magic-glow opacity-0 translate-y-4 px-8 py-4 bg-gradient-to-r from-emerald-800 to-teal-900 border border-amber-500/30 rounded-full text-amber-200 font-medium tracking-wide shadow-lg active:scale-95 transition-transform duration-150 text-base">
+                Duvido tu clicar
+            </button>
+        </section>
+
+        <section id="section-thrill" class="hidden absolute inset-0 w-full flex items-center justify-center pointer-events-none px-4">
+            <div id="thrill-word" class="font-serif text-3xl sm:text-5xl text-amber-100 font-bold tracking-wider opacity-0 scale-75 text-center break-words">
+                </div>
+        </section>
+
+        <section id="section-card" class="hidden w-full flex flex-col items-center justify-center bg-gray-950/60 backdrop-blur-lg border border-gray-800/80 p-6 sm:p-8 rounded-2xl sm:rounded-3xl shadow-2xl relative overflow-hidden my-4">
+            <div class="absolute top-0 inset-x-0 h-[1px] bg-gradient-to-r from-transparent via-amber-500/40 to-transparent"></div>
+            
+            <p id="card-tag" class="text-amber-400 font-medium tracking-[0.2em] text-xs uppercase mb-2 opacity-0">Save the Date</p>
+            
+            <h2 id="card-title" class="font-serif text-3xl sm:text-4xl text-transparent bg-clip-text bg-gradient-to-b from-gray-100 to-gray-300 font-semibold mb-5 tracking-wide opacity-0">
+                La gran cita!!! (¿Pensaste que me había olvidado?)
+            </h2>
+            
+            <div id="card-divider" class="w-12 h-[1px] bg-amber-500/30 mb-5 scale-x-0"></div>
+            
+            <div id="card-details" class="flex flex-col gap-5 text-gray-400 font-light tracking-wide mb-6 text-sm sm:text-base w-full">
+                <div class="flex flex-col items-center opacity-0 details-item">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">¿Cuando?</span>
+                    <p class="text-base sm:text-lg font-normal text-gray-200 font-serif">Viernes, 26 de Julio, 2026</p>
+                    <p class="text-xs sm:text-sm text-emerald-400/80 mt-0.5">19:00h</p>
+                </div>
+                
+                <div class="flex flex-col items-center opacity-0 details-item">
+                    <span class="text-[10px] text-gray-500 uppercase tracking-widest mb-1">¿Donde?</span>
+                    <p class="text-base sm:text-lg font-normal text-gray-200">Sakae's</p>
+                    <p class="text-xs sm:text-sm">Rua Castro Alves, 690, Porto Alegre (melhor cidade do mundo) - RS</p>
+                </div>
+            </div>
+
+            <button id="btn-accept" class="w-full opacity-0 translate-y-4 px-5 py-4 bg-gradient-to-r from-amber-500 to-amber-600 rounded-xl text-gray-950 font-semibold tracking-wide shadow-xl active:scale-[0.98] transition-transform duration-150 text-base shadow-amber-500/5">
+                Bora!
+            </button>
+        </section>
+
+    </main>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // --- 1. DYNAMIC PERSONALIZATION VIA URL ---
+            const getGuestName = () => {
+                const params = new URLSearchParams(window.location.search);
+                return params.get('name') || params.get('recipient');
+            };
+
+            const name = getGuestName();
+            if (name) {
+                document.getElementById('guest-name').textContent = name;
+            }
+
+            // --- 2. INITIAL INTRO ANIMATION (PHASE 1) ---
+            const tlIntro = gsap.timeline();
+            tlIntro.to('#intro-text', { opacity: 1, y: 0, duration: 1.0, ease: 'power3.out', delay: 0.3 })
+                   .to('#btn-unveil', { opacity: 1, y: 0, duration: 0.6, ease: 'power2.out' }, '-=0.3');
+
+            // --- 3. THE THRILL & REVEAL SEQUENCE (PHASE 2) ---
+            const btnUnveil = document.getElementById('btn-unveil');
+            const sectionIntro = document.getElementById('section-intro');
+            const sectionThrill = document.getElementById('section-thrill');
+            const sectionCard = document.getElementById('section-card');
+            const thrillWord = document.getElementById('thrill-word');
+            const bgGlow = document.getElementById('bg-glow');
+
+            const words = ["¿Lista? 👀", "bueno...", "Por que", "Va a pasar! ✨"];
+
+            btnUnveil.addEventListener('click', () => {
+                gsap.to(sectionIntro, { 
+                    opacity: 0, 
+                    scale: 0.95, 
+                    duration: 0.4, 
+                    ease: 'power2.in',
+                    onComplete: () => {
+                        sectionIntro.classList.add('hidden');
+                        startThrillSequence();
+                    }
+                });
+            });
+
+            function startThrillSequence() {
+                sectionThrill.classList.remove('hidden');
+                
+                // Adjust background glow fluidly on mobile
+                bgGlow.classList.remove('bg-emerald-950/30');
+                bgGlow.classList.add('bg-amber-950/40', 'w-[320px]', 'h-[320px]', 'sm:w-[600px]', 'sm:h-[600px]');
+
+                const tlThrill = gsap.timeline({
+                    onComplete: triggerClimaxReveal
+                });
+
+                words.forEach((word, index) => {
+                    tlThrill.to(thrillWord, {
+                        onStart: () => { thrillWord.innerHTML = word; },
+                        opacity: 1,
+                        scale: 1,
+                        duration: 0.4,
+                        ease: 'back.out(1.2)'
+                    })
+                    .to(thrillWord, {
+                        opacity: 0,
+                        scale: 1.05,
+                        duration: 0.3,
+                        ease: 'power2.in',
+                        delay: 0.7 
+                    });
+                });
+            }
+
+            function triggerClimaxReveal() {
+                sectionThrill.classList.add('hidden');
+                sectionCard.classList.remove('hidden');
+                
+                // Safe scrolling enabling for smaller devices (like iPhone SE)
+                document.body.style.overflow = 'auto';
+
+                // Confetti settings optimized to look great without choking mobile processors
+                const duration = 2.0 * 1000;
+                const end = Date.now() + duration;
+
+                (function frame() {
+                    confetti({
+                        particleCount: 2,
+                        angle: 60,
+                        spread: 45,
+                        origin: { x: 0, y: 0.7 },
+                        colors: ['#d4af37', '#ffffff', '#10b981']
+                    });
+                    confetti({
+                        particleCount: 2,
+                        angle: 120,
+                        spread: 45,
+                        origin: { x: 1, y: 0.7 },
+                        colors: ['#d4af37', '#ffffff', '#10b981']
+                    });
+
+                    if (Date.now() < end) {
+                        requestAnimationFrame(frame);
+                    }
+                }());
+
+                // Card Element Stagger Entrances
+                gsap.timeline()
+                    .fromTo(sectionCard, { scale: 0.95, opacity: 0 }, { scale: 1, opacity: 1, duration: 0.6, ease: 'power3.out' })
+                    .to('#card-tag', { opacity: 1, duration: 0.4 }, '-=0.2')
+                    .to('#card-title', { opacity: 1, duration: 0.4 }, '-=0.2')
+                    .to('#card-divider', { scaleX: 1, duration: 0.4, ease: 'power1.inOut' }, '-=0.3')
+                    .to('.details-item', { opacity: 1, y: 0, duration: 0.4, stagger: 0.15 }, '-=0.2')
+                    .to('#btn-accept', { opacity: 1, y: 0, duration: 0.4, ease: 'power2.out' }, '-=0.2');
+            }
+
+            // --- 4. THE MOBILE-READY ACCEPTANCE ---
+            const btnAccept = document.getElementById('btn-accept');
+            
+            btnAccept.addEventListener('click', () => {
+                confetti({
+                    particleCount: 80,
+                    spread: 60,
+                    origin: { y: 0.75 },
+                    colors: ['#d4af37', '#10b981', '#ffffff']
+                });
+
+                btnAccept.disabled = true;
+                btnAccept.classList.remove('from-amber-500', 'to-amber-600');
+                btnAccept.classList.add('from-emerald-600', 'to-teal-700', 'text-white');
+                
+                gsap.to(btnAccept, {
+                    scale: 1.03,
+                    duration: 0.15,
+                    yoyo: true,
+                    repeat: 1,
+                    ease: 'power2.out',
+                    onComplete: () => {
+                        btnAccept.innerHTML = "Conto contigo hihihi";
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>
